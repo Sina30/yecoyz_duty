@@ -20,7 +20,6 @@ AddEventHandler("playerDropped", function(reason)
     end
 end)
 
-
 function GetPlayerFromId(source)
     if (Framework == "ESX") then
         return ESX.GetPlayerFromId(source)
@@ -209,19 +208,37 @@ function SetDuty(source, status)
         if (not Player) then return false end
 
         Player.setJob(Player.job.name, Player.job.grade, status)
+        if (status) then
+            StartDuty(source)
+        else
+            StopDuty(source)
+        end
         return Player.job.onDuty
     elseif (Framework == "QBCore") and (GetResourceState("qbx_core") == "started") then
         local identifier = GetIdentifier(source)
         if (not identifier) then return nil end
-
+        if (status) then
+            StartDuty(source)
+        else
+            StopDuty(source)
+        end
         return exports.qbx_core:SetJobDuty(identifier, status)
     elseif (Framework == "QBCore" and (Config.FrameworkBased)) then
         local Player = QBCore.Functions.GetPlayer(source)
         if (not Player) then return false end
-
+        if (status) then
+            StartDuty(source)
+        else
+            StopDuty(source)
+        end
         return Player.Functions.SetJobDuty(status)
     else
         Cache.DutyData[source].onDuty = status
+        if (status) then
+            StartDuty(source)
+        else
+            StopDuty(source)
+        end
         return Cache.DutyData[source].onDuty
     end
 
@@ -252,9 +269,15 @@ lib.callback.register("yecoyz_duty:getFullName", function(source)
 end)
 
 lib.callback.register("yecoyz_duty:setDuty", function(source, status)
-    return SetDuty(source, status)
+    SetDuty(source, status)
+    return true
 end)
 
 exports("SetDuty", function(source, status)
-    return SetDuty(source, status)
+    SetDuty(source, status)
+    return true
 end)
+
+RegisterCommand("setDuty", function()
+    SetDuty(1, true)
+end, false)

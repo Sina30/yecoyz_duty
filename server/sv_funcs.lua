@@ -10,7 +10,7 @@ lib.callback.register("yecoyz_duty:getActiveDutyTime", function(source)
     return Cache.DutyData[source].startTime
 end)
 
-lib.callback.register("yecoyz_duty:startDuty", function(source)
+function StartDuty(source)
     local getMultiplier = GetMultiplier(source)
     local timeNow = os.time()
     Cache.DutyData[source] = {
@@ -18,6 +18,10 @@ lib.callback.register("yecoyz_duty:startDuty", function(source)
         startTime = timeNow,
         multiplier = getMultiplier,
     }
+end
+
+lib.callback.register("yecoyz_duty:startDuty", function(source)
+    StartDuty(source)
     return true
 end)
 
@@ -28,7 +32,8 @@ end)
 function StopDuty(source)
     local saveData = SaveMultiplierAndEndTime(source)
     if (not saveData) then return false end
-    
+    UpdateHistory(source)
+    print(Cache.DutyData[source].startTime)
     Cache.DutyData[source] = {}
     return true
 end
@@ -62,7 +67,8 @@ function FormatDutyTime(startTime)
     return string.format("%d h, %d m", math.floor(elapsedSeconds / 3600), math.floor((elapsedSeconds % 3600) / 60))
 end
 
-lib.callback.register("yecoyz_duty:updateHistory", function(source)
+function UpdateHistory(source)
+    print("knas", Cache.DutyData[source].startTime)
     local startTime = Cache.DutyData[source].startTime
     local endTime = os.time()
 
@@ -96,6 +102,13 @@ lib.callback.register("yecoyz_duty:updateHistory", function(source)
     local updateHistory = MySQL.update.await("UPDATE yecoyz_duty SET history = ? WHERE identifier = ?", {
         json.encode(getHistory), GetIdentifier(source)
     })
+    if (not updateHistory) then return false end
+
+    return true
+end
+
+lib.callback.register("yecoyz_duty:updateHistory", function(source)
+    local updateHistory = UpdateHistory(source)
     if (not updateHistory) then return false end
 
     return true

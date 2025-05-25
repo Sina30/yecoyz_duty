@@ -4,13 +4,7 @@ Duty = nil
 function ToggleDuty()
     Duty = not Duty
     local setNewDuty = SetDuty(Duty)
-    if (not Duty) then
-        local endTime = lib.callback.await("yecoyz_duty:stopDuty", false)
-        if (not endTime) then return false end
-    else
-        local startTime = lib.callback.await("yecoyz_duty:startDuty", false)
-        if (not startTime) then return false end
-    end
+    if (not setNewDuty) then return false end
     return true
 end
 
@@ -48,11 +42,6 @@ RegisterNUICallback("Eventhandler", function(data, cb)
     if (data.event == "toggleDuty") then
         Duty = GetPlayerOnDuty()
         local newDutyState = not Duty
-
-        if (not newDutyState) then
-            local saveHistory = SaveDutyHistory()
-            if (not saveHistory) then return cb({success = false}) end
-        end
 
         local toggleDuty = ToggleDuty()
         if (not toggleDuty) then return cb({success = false}) end
